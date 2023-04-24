@@ -21,8 +21,8 @@ import (
 
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 
-	edgegrid "github.com/akamai/AkamaiOPEN-edgegrid-golang/edgegrid"
-	collectors "github.com/akamai/akamai-gtm-metrics-exporter/collectors"
+	collectors "github.com/akamai-consulting/akamai-gtm-metrics-exporter/collectors"
+	edgegrid "github.com/akamai/AkamaiOPEN-edgegrid-golang/v5/pkg/edgegrid"
 	"gopkg.in/yaml.v2"
 
 	"fmt"
@@ -63,6 +63,7 @@ var (
 // 4. Default
 func initAkamaiConfig(gtmMetricsConfig collectors.GTMMetricsConfig) error {
 
+	//TODO: we aren't using config file, but we should make sure this still works
 	if *edgegridHost != "" && *edgegridClientSecret != "" && *edgegridClientToken != "" && *edgegridAccessToken != "" {
 		edgeconf := edgegrid.Config{}
 		edgeconf.Host = *edgegridHost

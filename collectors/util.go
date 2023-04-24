@@ -15,10 +15,12 @@ package collectors
 
 import (
 	"fmt"
+
 	client "github.com/akamai/AkamaiOPEN-edgegrid-golang/client-v1"
-	configgtm "github.com/akamai/AkamaiOPEN-edgegrid-golang/configgtm-v1_4"
-	edgegrid "github.com/akamai/AkamaiOPEN-edgegrid-golang/v5/pkg/edgegrid"
+	edgegridv1 "github.com/akamai/AkamaiOPEN-edgegrid-golang/edgegrid"
 	gtm "github.com/akamai/AkamaiOPEN-edgegrid-golang/reportsgtm-v1"
+	edgegrid "github.com/akamai/AkamaiOPEN-edgegrid-golang/v5/pkg/edgegrid"
+	configgtm "github.com/akamai/AkamaiOPEN-edgegrid-golang/v5/pkg/gtm"
 
 	"sort"
 	"strings"
@@ -35,11 +37,15 @@ var (
 	EdgegridConfig edgegrid.Config = edgegrid.Config{}
 	// testflag is used for test automation only
 )
+var (
+	Edgegridv1Config = edgegridv1.Config{AccessToken: EdgegridConfig.AccessToken, ClientSecret: EdgegridConfig.ClientSecret, ClientToken: EdgegridConfig.ClientToken, Host: EdgegridConfig.Host, AccountKey: EdgegridConfig.AccountKey}
+)
 
 // Init edgegrid Config
 func EdgegridInit(edgercpath, section string) error {
+	config := edgegrid.Config{}
+	err := config.FromEnv("AKAMAI_GTM_METRICS")
 
-	config, err := edgegrid.Init(edgercpath, section)
 	if err != nil {
 		return fmt.Errorf("Edgegrid initialization failed. Error: %s", err.Error())
 	}
@@ -49,11 +55,7 @@ func EdgegridInit(edgercpath, section string) error {
 
 // Finish edgegrid init
 func EdgeInit(config edgegrid.Config) error {
-
-	EdgegridConfig = config
-	gtm.Init(config)
-	configgtm.Init(config)
-
+	gtm.Init(Edgegridv1Config)
 	return nil
 }
 
@@ -108,7 +110,7 @@ func GetLivenessErrorsReport(domainName, propertyName string, livenessReportQuer
 	hostURL := fmt.Sprintf("/gtm-api/v1/reports/liveness-tests/domains/%s/properties/%s", domainName, propertyName)
 
 	req, err := client.NewRequest(
-		EdgegridConfig,
+		Edgegridv1Config,
 		"GET",
 		hostURL,
 		nil,
@@ -139,7 +141,7 @@ func GetLivenessErrorsReport(domainName, propertyName string, livenessReportQuer
 	// time stamps require urlencoded content header
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	res, err := client.Do(EdgegridConfig, req)
+	res, err := client.Do(Edgegridv1Config, req)
 	if err != nil {
 		return nil, err
 	}
@@ -147,10 +149,11 @@ func GetLivenessErrorsReport(domainName, propertyName string, livenessReportQuer
 	if client.IsError(res) && res.StatusCode != 404 {
 		return nil, client.NewAPIError(res)
 	} else if res.StatusCode == 404 {
-		cErr := configgtm.CommonError{}
-		cErr.SetItem("entityName", "Liveness")
-		cErr.SetItem("name", propertyName)
-		return nil, cErr
+		cErr := configgtm.Error{}
+		cErr.Type = "Liveness"
+		cErr.Title = propertyName
+		//TODO we have to figure this error thing out
+		return nil, err
 	} else {
 		err = client.BodyJSON(res, stat)
 		if err != nil {
@@ -184,7 +187,7 @@ func NewGTMReportQueryArgs() *GTMReportQueryArgs {
 	return &GTMReportQueryArgs{}
 }
 
-//  Util function to convert string to time.Time object
+// Util function to convert string to time.Time object
 func parseTimeString(srctime, format string) (time.Time, error) {
 
 	ts, err := time.Parse(format, srctime)
