@@ -15,12 +15,11 @@ package collectors
 
 import (
 	"fmt"
-	"testing"
-
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/h2non/gock.v1"
+	"testing"
 
-	edgegrid "github.com/akamai/AkamaiOPEN-edgegrid-golang/v5/pkg/edgegrid"
+	edgegrid "github.com/akamai/AkamaiOPEN-edgegrid-golang/edgegrid"
 )
 
 var (
