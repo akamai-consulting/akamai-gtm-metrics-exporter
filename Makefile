@@ -16,7 +16,7 @@ all::
 
 # Needs to be defined before including Makefile.common to auto-generate targets
 DOCKER_ARCHS ?= amd64 # armv7 arm64 ppc64le s390x
-DOCKER_REPO ?= akamai
+DOCKER_REPO ?= akamai-consulting
 
 PROMTOOL_VERSION ?= 2.18.1
 PROMTOOL_URL     ?= https://github.com/prometheus/prometheus/releases/download/v$(PROMTOOL_VERSION)/prometheus-$(PROMTOOL_VERSION).$(GO_BUILD_PLATFORM).tar.gz

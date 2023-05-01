@@ -50,6 +50,7 @@ var (
 	edgegridClientSecret = kingpin.Flag("gtm.edgegrid-client-secret", "The Akamai Edgegrid client_secret credential.").String()
 	edgegridClientToken  = kingpin.Flag("gtm.edgegrid-client-token", "The Akamai Edgegrid client_token credential.").String()
 	edgegridAccessToken  = kingpin.Flag("gtm.edgegrid-access-token", "The Akamai Edgegrid access_token credential.").String()
+	edgegridAccountKey   = kingpin.Flag("gtm.edgegrid-account-key", "The Akamai account key credential.").String()
 
 	// invalidMetricChars    = regexp.MustCompile("[^a-zA-Z0-9_:]")
 	lookbackDuration = lookbackDefaultDuration
@@ -63,12 +64,17 @@ var (
 // 4. Default
 func initAkamaiConfig(gtmMetricsConfig collectors.GTMMetricsConfig) error {
 
+	log.Warnf("Host: %s Client Token: %s Client Secret: %s AccessToken %s", *edgegridHost, *edgegridClientToken, *edgegridClientSecret, *edgegridAccessToken)
 	if *edgegridHost != "" && *edgegridClientSecret != "" && *edgegridClientToken != "" && *edgegridAccessToken != "" {
 		edgeconf := edgegrid.Config{}
 		edgeconf.Host = *edgegridHost
 		edgeconf.ClientToken = *edgegridClientToken
 		edgeconf.ClientSecret = *edgegridClientSecret
 		edgeconf.AccessToken = *edgegridAccessToken
+		if *edgegridAccountKey != "" {
+			edgeconf.AccountKey = *edgegridAccountKey
+		}
+
 		edgeconf.MaxBody = 131072
 		return collectors.EdgeInit(edgeconf)
 	} else if *edgegridHost != "" || *edgegridClientSecret != "" || *edgegridClientToken != "" || *edgegridAccessToken != "" {
